@@ -1,1 +1,37 @@
-<!DOCTYPE html><html><head><title>Kisan Pathshala</title><meta name="viewport" content="width=device-width, initial-scale=1"><style>body{font-family:sans-serif;text-align:center;padding:20px;background:#f0fff0}button{background:green;color:white;padding:15px 30px;border:none;border-radius:10px;font-size:18px}</style></head><body><h1>🌾 Kisan Pathshala</h1><p>AI Voice Advisory for Farmers</p><h3>Select Crop Photo</h3><input type="file" id="photo"><br><br><button onclick="alert('AI Analysis: Mealybug attack detected! Spray Neem Oil. Telugu Voice: Mee panta lo purugu undi, neem oil spray cheyandi')">Analyze with AI</button><br><br><div id="result" style="background:white;padding:15px;border-radius:10px;margin-top:20px"><b>Result will come here with Telugu Voice</b></div><p>Built for Build with AI Hackathon - Track 4 Kisan Alert</p></body></html>
+<!DOCTYPE html>
+<html>
+<head>
+<title>Kisan Pathshala</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body{text-align:center;padding:20px;background:#e8f5e9;font-family:sans-serif}
+.card{background:white;padding:20px;border-radius:15px;max-width:500px;margin:auto}
+button{background:#2e7d32;color:white;padding:12px 20px;border:none;border-radius:8px}
+</style>
+</head>
+<body>
+<div class="card">
+<h2>🌾 Kisan Pathshala 🌾</h2>
+<select id="lang">
+<option value="telugu">తెలుగు</option>
+<option value="hindi">हिंदी</option>
+<option value="english">English</option>
+</select><br><br>
+<input type="file"><br><br>
+<button onclick="speak()">Analyze</button>
+<p id="out" style="font-weight:bold;margin-top:15px"></p>
+</div>
+<script>
+function speak(){
+let l=document.getElementById('lang').value;
+let t={telugu:"మీ పంటలో పురుగు ఉంది వేప నూనె స్ప్రే చేయండి",hindi:"आपकी फसल में कीट है नीम तेल छिड़काव करें",english:"Pest detected spray neem oil"};
+let m=t[l];
+document.getElementById('out').innerText=m;
+let u=new SpeechSynthesisUtterance(m);
+u.lang="en-IN";u.rate=0.9;
+speechSynthesis.cancel();
+speechSynthesis.speak(u);
+}
+</script>
+</body>
+</html>
