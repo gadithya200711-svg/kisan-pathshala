@@ -1,39 +1,86 @@
 <!DOCTYPE html>
-<html>
+<html lang="te">
 <head>
-<title>Kisan Pathshala</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kisan Pathshala - AI Leaf Doctor</title>
 <style>
-body{text-align:center;padding:20px;background:#e8f5e9;font-family:sans-serif}
-.card{background:white;padding:20px;border-radius:15px;max-width:500px;margin:auto;box-shadow:0 4px 10px #0002}
-button{background:#2e7d32;color:white;padding:12px 20px;border:none;border-radius:8px;font-weight:bold}
+body{font-family:Arial,sans-serif;text-align:center;padding:20px;background:#f0fff0}
+h1{color:#2e7d32}
+#previewImg{max-width:300px;border-radius:15px;border:3px solid #4caf50;margin:15px;display:none}
+button{padding:12px 25px;font-size:18px;background:#2e7d32;color:white;border:none;border-radius:10px;cursor:pointer}
+button:hover{background:#1b5e20}
+#result{margin-top:20px;padding:15px;font-size:18px;font-weight:bold;border-radius:12px;white-space:pre-line;text-align:left;max-width:400px;margin-left:auto;margin-right:auto}
+select{padding:8px;font-size:16px;border-radius:8px}
 </style>
 </head>
 <body>
-<div class="card">
-<h2>🌾 Kisan Pathshala 🌾</h2>
-<select id="lang">
-<option value="telugu">తెలుగు</option>
-<option value="hindi">हिंदी</option>
-<option value="english">English</option>
-</select><br><br>
-<input type="file" id="file"><br><br>
-<button onclick="speak()">Analyze</button>
-<p id="out" style="font-weight:bold;margin-top:15px"></p>
-</div>
+<h1>🌿 Kisan Pathshala</h1>
+<h3>AI tho Disease + Solution</h3>
+<select id="language"><option value="te">Telugu</option><option value="hi">Hindi</option><option value="en">English</option></select><br><br>
+<input type="file" id="fileInput" accept="image/*" onchange="preview()"><br>
+<img id="previewImg"><br>
+<button onclick="analyzeLeaf()">🔍 AI Analysis Chey</button>
+<div id="result"></div>
+<canvas id="canvas" style="display:none"></canvas>
 <script>
-function speak(){
-let l=document.getElementById('lang').value;
-let t={
-telugu:["✅ మీ పంట super healthy ra!","⚠️ తెగులు వచ్చింది రా, Saaf 2gm spray chey","🐛 పురుగు ఉంది రా, వేప నూనె కొట్టు"],
-hindi:["✅ Fasal ekdum healthy hai!","⚠️ Rog hai, Saaf spray karo","🐛 Keet hai, Neem tel dalo"],
-english:["✅ Crop is Healthy!","⚠️ Disease detected, spray Saaf","🐛 Pest found, spray Neem Oil"]
-};
-let m=t[l][Math.floor(Math.random()*3)];
-document.getElementById('out').innerText=m;
-let u=new SpeechSynthesisUtterance(m);
-if(l=='telugu')u.lang='te-IN'; else if(l=='hindi')u.lang='hi-IN'; else u.lang='en-IN';
-speechSynthesis.speak(u);
+function preview(){
+ let file=document.getElementById('fileInput').files[0];
+ if(!file) return;
+ let img=document.getElementById('previewImg');
+ img.src=URL.createObjectURL(file);
+ img.style.display='block';
+ document.getElementById('result').innerHTML="📸 Photo ready ra! AI nokku 👆";
+}
+function analyzeLeaf(){
+ let file=document.getElementById('fileInput').files[0];
+ if(!file){ alert("Mundhu photo pettu ra!"); return; }
+ let img=document.getElementById('previewImg');
+ let canvas=document.getElementById('canvas');
+ let ctx=canvas.getContext('2d');
+ canvas.width=img.naturalWidth||400;
+ canvas.height=img.naturalHeight||400;
+ ctx.drawImage(img,0,0,canvas.width,canvas.height);
+ let data=ctx.getImageData(0,0,canvas.width,canvas.height).data;
+ let yellow=0,brown=0,green=0,total=0;
+ for(let i=0;i<data.length;i+=16){
+   let r=data[i],g=data[i+1],b=data[i+2];
+   if(r>240&&g>240&&b>240) continue;
+   if(r<15&&g<15&&b<15) continue;
+   total++;
+   if(g>70 && g>r+10 && g>b+10) green++;
+   else if(r>150 && g>150 && b<120) yellow++;
+   else if(r>60 && r<180 && g<120 && b<100 && r>g) brown++;
+ }
+ let yPct=(yellow/total)*100, bPct=(brown/total)*100, gPct=(green/total)*100;
+ let lang=document.getElementById('language').value;
+ let resultDiv=document.getElementById('result');
+ let disease="", solution="", status="";
+
+ if(yPct>2.5 || bPct>1.5){
+   if(bPct>3 && yPct>3){
+     disease = lang=='te'?"Early Blight (Tholi Endu Tegulu)": lang=='hi'?"Early Blight":"Early Blight Disease";
+     solution = lang=='te'?"💊 Mandu: Mancozeb 2.5g + 1L neellu. 7 rojula ki okasari spray chey. Krinda padda aakulu anni teesi kalabettu ra!":"💊 Solution: Spray Mancozeb 2.5g/L every 7 days. Remove fallen leaves.";
+   } else if(yPct>4){
+     disease = lang=='te'?"Yellow Mosaic Virus":"Yellow Mosaic Virus";
+     solution = lang=='te'?"💊 Neem oil 5ml + 1L neellu + konchem shampoo. Thella dhooma (whitefly) ni champu, ade virus ni spread chestadi ra!":"💊 Neem oil 5ml/L + shampoo. Control whitefly, it spreads virus.";
+   } else {
+     disease = lang=='te'?"Leaf Spot / Aaku Marcha Tegulu":"Leaf Spot Disease";
+     solution = lang=='te'?"💊 Copper Oxychloride 3g/L spray chey. Mokku meeda neeru padakunda chudu, udayam spray chey ra!":"💊 Copper fungicide 3g/L, spray morning, avoid wetting leaves.";
+   }
+   status = lang=='te'?`⚠️ AI kanipettindi ra! Tegulu undi!`:`⚠️ Disease Detected by AI!`;
+   resultDiv.style.background="#ffebee"; resultDiv.style.color="#b71c1c"; resultDiv.style.border="2px solid red";
+   resultDiv.innerText=`${status}\n\n🦠 Disease Name: ${disease}\n🟢 Healthy: ${gPct.toFixed(1)}% | 🟡 Yellow: ${yPct.toFixed(1)}% | 🟤 Brown: ${bPct.toFixed(1)}%\n\n${solution}\n\n🔊 Voice lo kuda cheptondi vinu ra!`;
+ } else {
+   disease = lang=='te'?"Healthy - Ye Tegulu Ledu":"Healthy";
+   solution = lang=='te'?"✅ Mokka first class lo undi ra! Neeru, Enda correct ga istunnav. Ilaage continue chey!":"✅ Plant is perfectly healthy!";
+   status = lang=='te'?"✅ AI kanipettindi ra! Mokka 100% Healthy!":"✅ AI Says 100% Healthy!";
+   resultDiv.style.background="#e8f5e9"; resultDiv.style.color="#1b5e20"; resultDiv.style.border="2px solid green";
+   resultDiv.innerText=`${status}\n\n🦠 Status: ${disease}\n🟢 Greenness: ${gPct.toFixed(1)}%\n\n${solution}`;
+ }
+ let utter=new SpeechSynthesisUtterance(resultDiv.innerText);
+ utter.lang= lang=='te'?'te-IN':lang=='hi'?'hi-IN':'en-US';
+ speechSynthesis.speak(utter);
 }
 </script>
 </body>
