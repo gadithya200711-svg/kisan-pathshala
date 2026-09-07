@@ -1,62 +1,108 @@
 <!DOCTYPE html>
-<html lang="te">
-<head><meta charset="UTF-8"><title>Kisan Pathshala</title>
-<style>body{font-family:Arial;background:#f0fff0;padding:10px}
-.card{max-width:500px;margin:auto;background:white;padding:20px;border-radius:15px}
-button{background:#2e7d32;color:white;padding:12px;width:100%;font-size:18px;border:none;border-radius:8px}
-#preview{width:100%;display:none;margin-top:10px}
-#result{margin-top:15px;padding:15px;border-radius:10px;display:none}
-.healthy{background:#e8f5e9;border:2px solid green}
-.disease{background:#ffebee;border:2px solid red}</style>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kisan Pathshala - Rog Nivaran</title>
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@700&display=swap" rel="stylesheet">
+<style>
+body{font-family:Arial;background:#e8f5e9;padding:15px}
+.card{max-width:600px;margin:auto;background:#fff;padding:20px;border-radius:15px;box-shadow:0 8px 20px rgba(0,0,0,.15);text-align:center;border-top:6px solid #2e7d32}
+h2{color:#2e7d32}
+select, input{width:95%;padding:12px;margin-top:10px;border-radius:10px;border:1.5px solid #2e7d32}
+img{width:100%;max-width:320px;border-radius:12px;margin-top:12px;display:none;border:3px solid #2e7d32}
+#output{margin-top:15px;text-align:left;padding:15px;background:#fffde7;border-radius:10px;display:none;border-left:5px solid #ff9800}
+.handwritten{font-family:'Kalam', cursive; font-size:20px; color:#1b5e20;}
+.btn{padding:12px 22px;border:none;border-radius:25px;background:#2e7d32;color:#fff;font-weight:bold;margin-top:10px;cursor:pointer}
+</style>
 </head>
 <body>
 <div class="card">
 <h2>🌱 Kisan Pathshala</h2>
-<input type="file" id="fileInput" accept="image/*">
-<img id="preview"><button onclick="analyze()">🤖 AI Analysis Chey</button>
-<div id="result"></div><canvas id="canvas" style="display:none"></canvas>
+
+<select id="langSelect">
+<option value="en">English</option>
+<option value="te">Telugu</option>
+<option value="hi">Hindi</option>
+</select>
+
+<input type="file" id="photo" accept="image/*">
+<img id="preview">
+
+<select id="disease">
+<option value="">-- Rogam / Disease Select Chey --</option>
+<option value="leafspot">Leaf Spot / Aaku Mచ్చ</option>
+<option value="yellow">Yellow Leaf / Pasupu Aaku</option>
+<option value="powdery">Powdery Mildew / Bhoodida Tegulu</option>
+<option value="blight">Blight / Endu Tegulu</option>
+<option value="wilt">Wilt / Vadalu</option>
+</select>
+
+<div id="output">
+<p class="handwritten" id="dName"></p>
+<p class="handwritten" id="dSol"></p>
+<button class="btn" onclick="speakNow()">🔊 Voice lo Vinu</button>
 </div>
+
+<p style="font-size:11px;color:gray">*Educational purpose only. Final ki Krishi Expert ni kalavandi.</p>
+</div>
+
 <script>
-let selectedImage=null;
-document.getElementById('fileInput').addEventListener('change',e=>{
- let f=e.target.files[0];let r=new FileReader();
- r.onload=ev=>{selectedImage=ev.target.result;let im=document.getElementById('preview');im.src=selectedImage;im.style.display='block';};
- r.readAsDataURL(f);
+let currentText = "";
+const data = {
+  en: {
+    leafspot: {name: "Disease: Leaf Spot", sol: "Solution: Remove affected leaves, avoid water on leaves, use Neem oil spray. Consult Krishi Kendra."},
+    yellow: {name: "Disease: Yellow Leaf", sol: "Solution: Check nitrogen deficiency, add compost. Don't overwater."},
+    powdery: {name: "Disease: Powdery Mildew", sol: "Solution: White powder on leaves. Use baking soda + water spray, improve air flow."},
+    blight: {name: "Disease: Blight", sol: "Solution: Cut infected parts, use copper based spray as per expert."},
+    wilt: {name: "Disease: Wilt", sol: "Solution: Soil drainage check, avoid overwatering. Use Trichoderma."}
+  },
+  te: {
+    leafspot: {name: "Rogam: Aaku Maccha Tegulu", sol: "Parishkaram: Chedda akulu teeseyandi, akulapai neellu padakunda chudandi, Neem oil spray cheyandi."},
+    yellow: {name: "Rogam: Pasupu Aaku", sol: "Parishkaram: Nitrogen lopam undochu, compost veyandi. Ekkuva neellu vaddhu."},
+    powdery: {name: "Rogam: Bhoodida Tegulu", sol: "Parishkaram: Akulapai tella pudi. Baking soda + neella spray, gali tagilela chudandi."},
+    blight: {name: "Rogam: Endu Tegulu", sol: "Parishkaram: Chedda bhagalu kosi veyandi, expert cheppina mandu vadandi."},
+    wilt: {name: "Rogam: Vadalu / Vadinchatam", sol: "Parishkaram: Neeru ekkuva vaddu, drainage chudandi. Trichoderma vadandi."}
+  },
+  hi: {
+    leafspot: {name: "Rog: Patton Par Dhabba", sol: "Samadhan: Kharab patte hataye, patton par paani na dale, Neem tel ka spray kare."},
+    yellow: {name: "Rog: Peela Patta", sol: "Samadhan: Nitrogen ki kami ho sakti hai, gobar ki khad dale."},
+    powdery: {name: "Rog: Safed Powder Rog", sol: "Samadhan: Patton par safed powder. Baking soda spray kare."},
+    blight: {name: "Rog: Jhulas Rog", sol: "Samadhan: Sankramit hissa kaat de, expert se dawai le."},
+    wilt: {name: "Rog: Murjhana Rog", sol: "Samadhan: Paani kam de, mitti ki nikasi dekhe."}
+  }
+};
+
+document.getElementById("photo").addEventListener("change", e=>{
+  let file = e.target.files[0];
+  if(file){
+    let r = new FileReader();
+    r.onload = ev => {
+      let im = document.getElementById("preview");
+      im.src = ev.target.result;
+      im.style.display = "block";
+    };
+    r.readAsDataURL(file);
+  }
 });
-function analyze(){
- if(!selectedImage){alert('Photo pettu ra');return;}
- let img=new Image();img.src=selectedImage;
- img.onload=()=>{
-  let c=document.getElementById('canvas'),ctx=c.getContext('2d');
-  c.width=100;c.height=100;ctx.drawImage(img,0,0,100,100);
-  let d=ctx.getImageData(0,0,100,100).data,g=0,y=0,b=0,total=10000;
-  for(let i=0;i<d.length;i+=4){
-   let r=d[i],gr=d[i+1],bl=d[i+2];
-   if(gr>80&&gr>r+10&&gr>bl+10)g++;
-   else if(r>150&&gr>150&&bl<100)y++;
-   else if(r>80&&r<160&&gr>40&&gr<120&&bl<80)b++;
-  }
-  let gPct=(g/total*100).toFixed(1),yPct=(y/total*100).toFixed(1),bPct=(b/total*100).toFixed(1);
-  let disease="",mandu="",isHealthy=false;
-  // FIXED ORDER
-  if(parseFloat(yPct)<2 && parseFloat(bPct)<3){
-   disease="✅ Healthy";mandu="💊 Mandu avasaram ledu ra!";isHealthy=true;
-  }else if(parseFloat(yPct)>15){
-   disease="🦠 Yellow Mosaic Virus (Pasupu Muccha Tegulu)";
-   mandu="💊 Neem Oil 5ml + 1L neellu. Thella dhoma ki Agni Astra!";
-  }else if(parseFloat(bPct)>15){
-   disease="🦠 Early Blight (Tholi Endu Tegulu)";
-   mandu="💊 Mancozeb 2.5g + 1L neellu. 7 rojula ki okasari!";
-  }else if(parseFloat(bPct)>5){
-   disease="🦠 Leaf Spot";mandu="💊 Copper Oxychloride 3g + 1L neellu!";
-  }else{
-   disease="🦠 Bacterial Blight";mandu="💊 Streptocycline 1g + 1L neellu!";
-  }
-  let res=document.getElementById('result');res.style.display='block';
-  res.className=isHealthy?'healthy':'disease';
-  res.innerHTML=`<b>${disease}</b><br>🟢${gPct}% 🟡${yPct}% 🟤${bPct}%<br><br><b>${mandu}</b>`;
-  speechSynthesis.speak(new SpeechSynthesisUtterance(disease+". "+mandu));
- };
+function updateOutput(){
+  let lang = document.getElementById("langSelect").value;
+  let dis = document.getElementById("disease").value;
+  if(!dis) return;
+  document.getElementById("output").style.display = "block";
+  document.getElementById("dName").innerText = data[lang][dis].name;
+  document.getElementById("dSol").innerText = data[lang][dis].sol;
+  currentText = data[lang][dis].name + ". " + data[lang][dis].sol;
+}
+document.getElementById("disease").addEventListener("change", updateOutput);
+document.getElementById("langSelect").addEventListener("change", updateOutput);
+
+function speakNow(){
+  if(currentText=="") return;
+  let msg = new SpeechSynthesisUtterance(currentText);
+  let lang = document.getElementById("langSelect").value;
+  msg.lang = lang=="te"? "te-IN" : lang=="hi"? "hi-IN" : "en-US";
+  window.speechSynthesis.speak(msg);
 }
 </script>
 </body>
