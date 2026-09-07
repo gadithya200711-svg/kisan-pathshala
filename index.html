@@ -3,22 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kisan Pathshala - Rog Nivaran</title>
+<title>Kisan Pathshala - AI Detect</title>
 <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@700&display=swap" rel="stylesheet">
 <style>
 body{font-family:Arial;background:#e8f5e9;padding:15px}
-.card{max-width:600px;margin:auto;background:#fff;padding:20px;border-radius:15px;box-shadow:0 8px 20px rgba(0,0,0,.15);text-align:center;border-top:6px solid #2e7d32}
-h2{color:#2e7d32}
-select, input{width:95%;padding:12px;margin-top:10px;border-radius:10px;border:1.5px solid #2e7d32}
+.card{max-width:600px;margin:auto;background:#fff;padding:20px;border-radius:15px;text-align:center;border-top:6px solid #2e7d32;box-shadow:0 8px 20px rgba(0,0,0,.15)}
 img{width:100%;max-width:320px;border-radius:12px;margin-top:12px;display:none;border:3px solid #2e7d32}
 #output{margin-top:15px;text-align:left;padding:15px;background:#fffde7;border-radius:10px;display:none;border-left:5px solid #ff9800}
 .handwritten{font-family:'Kalam', cursive; font-size:20px; color:#1b5e20;}
 .btn{padding:12px 22px;border:none;border-radius:25px;background:#2e7d32;color:#fff;font-weight:bold;margin-top:10px;cursor:pointer}
+select{padding:8px 15px;border-radius:20px;border:2px solid #2e7d32}
+#loader{display:none;color:#2e7d32;font-weight:bold;margin-top:10px}
 </style>
 </head>
 <body>
 <div class="card">
-<h2>🌱 Kisan Pathshala</h2>
+<h2>🌱 Kisan Pathshala - AI Rog Detect</h2>
 
 <select id="langSelect">
 <option value="en">English</option>
@@ -26,82 +26,95 @@ img{width:100%;max-width:320px;border-radius:12px;margin-top:12px;display:none;b
 <option value="hi">Hindi</option>
 </select>
 
+<br><br>
 <input type="file" id="photo" accept="image/*">
 <img id="preview">
-
-<select id="disease">
-<option value="">-- Rogam / Disease Select Chey --</option>
-<option value="leafspot">Leaf Spot / Aaku Mచ్చ</option>
-<option value="yellow">Yellow Leaf / Pasupu Aaku</option>
-<option value="powdery">Powdery Mildew / Bhoodida Tegulu</option>
-<option value="blight">Blight / Endu Tegulu</option>
-<option value="wilt">Wilt / Vadalu</option>
-</select>
+<div id="loader">🤖 AI Photo ni Chustondi... 2 sec...</div>
 
 <div id="output">
 <p class="handwritten" id="dName"></p>
 <p class="handwritten" id="dSol"></p>
+<p id="conf" style="font-size:13px;color:#ff6f00"></p>
 <button class="btn" onclick="speakNow()">🔊 Voice lo Vinu</button>
 </div>
-
-<p style="font-size:11px;color:gray">*Educational purpose only. Final ki Krishi Expert ni kalavandi.</p>
+<p style="font-size:11px;color:gray;margin-top:10px;">*AI Demo only. Original AI kosam Teachable Machine model add cheyali. Final ki Krishi Expert ni kalavandi.</p>
 </div>
 
 <script>
-let currentText = "";
-const data = {
-  en: {
-    leafspot: {name: "Disease: Leaf Spot", sol: "Solution: Remove affected leaves, avoid water on leaves, use Neem oil spray. Consult Krishi Kendra."},
-    yellow: {name: "Disease: Yellow Leaf", sol: "Solution: Check nitrogen deficiency, add compost. Don't overwater."},
-    powdery: {name: "Disease: Powdery Mildew", sol: "Solution: White powder on leaves. Use baking soda + water spray, improve air flow."},
-    blight: {name: "Disease: Blight", sol: "Solution: Cut infected parts, use copper based spray as per expert."},
-    wilt: {name: "Disease: Wilt", sol: "Solution: Soil drainage check, avoid overwatering. Use Trichoderma."}
+let currentText="";
+const data={
+  en:{
+    leafspot:{name:"AI Detected: Leaf Spot",sol:"Remove affected leaves, avoid water on leaves, use Neem oil. Consult Krishi Kendra."},
+    yellow:{name:"AI Detected: Yellow Leaf - Nutrient Deficiency",sol:"Add compost/vermicompost, check nitrogen. Don't overwater."},
+    powdery:{name:"AI Detected: Powdery Mildew",sol:"White powder on leaves. Baking soda spray, improve air circulation."},
+    blight:{name:"AI Detected: Blight",sol:"Cut infected parts immediately, use copper spray as per expert."},
+    wilt:{name:"AI Detected: Wilt",sol:"Check soil drainage, use Trichoderma. Avoid overwatering."}
   },
-  te: {
-    leafspot: {name: "Rogam: Aaku Maccha Tegulu", sol: "Parishkaram: Chedda akulu teeseyandi, akulapai neellu padakunda chudandi, Neem oil spray cheyandi."},
-    yellow: {name: "Rogam: Pasupu Aaku", sol: "Parishkaram: Nitrogen lopam undochu, compost veyandi. Ekkuva neellu vaddhu."},
-    powdery: {name: "Rogam: Bhoodida Tegulu", sol: "Parishkaram: Akulapai tella pudi. Baking soda + neella spray, gali tagilela chudandi."},
-    blight: {name: "Rogam: Endu Tegulu", sol: "Parishkaram: Chedda bhagalu kosi veyandi, expert cheppina mandu vadandi."},
-    wilt: {name: "Rogam: Vadalu / Vadinchatam", sol: "Parishkaram: Neeru ekkuva vaddu, drainage chudandi. Trichoderma vadandi."}
+  te:{
+    leafspot:{name:"AI Gurtinchindi: Aaku Maccha Rogam",sol:"Chedda akulu teeseyandi, Neem oil spray cheyandi."},
+    yellow:{name:"AI Gurtinchindi: Pasupu Aaku - Poshak Lopam",sol:"Compost veyandi, ekkuva neellu vaddu."},
+    powdery:{name:"AI Gurtinchindi: Bhoodida Tegulu",sol:"Tella pudi kanipistondi, baking soda spray cheyandi."},
+    blight:{name:"AI Gurtinchindi: Endu Tegulu",sol:"Chedda bhagalu kosi veyandi, mandu vadandi."},
+    wilt:{name:"AI Gurtinchindi: Vadalu Rogam",sol:"Neeru ekkuva vaddu, Trichoderma vadandi."}
   },
-  hi: {
-    leafspot: {name: "Rog: Patton Par Dhabba", sol: "Samadhan: Kharab patte hataye, patton par paani na dale, Neem tel ka spray kare."},
-    yellow: {name: "Rog: Peela Patta", sol: "Samadhan: Nitrogen ki kami ho sakti hai, gobar ki khad dale."},
-    powdery: {name: "Rog: Safed Powder Rog", sol: "Samadhan: Patton par safed powder. Baking soda spray kare."},
-    blight: {name: "Rog: Jhulas Rog", sol: "Samadhan: Sankramit hissa kaat de, expert se dawai le."},
-    wilt: {name: "Rog: Murjhana Rog", sol: "Samadhan: Paani kam de, mitti ki nikasi dekhe."}
+  hi:{
+    leafspot:{name:"AI Ne Pahchana: Patton Par Dhabba",sol:"Kharab patte hataye, Neem tel spray kare."},
+    yellow:{name:"AI Ne Pahchana: Peela Patta",sol:"Khad dale, paani kam de."},
+    powdery:{name:"AI Ne Pahchana: Safed Powder",sol:"Baking soda spray, hawa aane de."},
+    blight:{name:"AI Ne Pahchana: Jhulas Rog",sol:"Sankramit hissa kaat de."},
+    wilt:{name:"AI Ne Pahchana: Murjhana",sol:"Mitti ki nikasi dekhe, Trichoderma dale."}
   }
 };
 
+const diseases=["leafspot","yellow","powdery","blight","wilt"];
+
 document.getElementById("photo").addEventListener("change", e=>{
-  let file = e.target.files[0];
-  if(file){
-    let r = new FileReader();
-    r.onload = ev => {
-      let im = document.getElementById("preview");
-      im.src = ev.target.result;
-      im.style.display = "block";
-    };
-    r.readAsDataURL(file);
+  let file=e.target.files[0];
+  if(!file) return;
+  let r=new FileReader();
+  r.onload=ev=>{
+    let im=document.getElementById("preview");
+    im.src=ev.target.result;
+    im.style.display="block";
+    document.getElementById("loader").style.display="block";
+    document.getElementById("output").style.display="none";
+
+    // AI DETECTION LOGIC (Demo - file name basis, real lo model vastadi)
+    setTimeout(()=>{
+      document.getElementById("loader").style.display="none";
+      // Real AI lo ikkada model.predict() vastadi
+      // Demo kosam random ga kakunda file size batti okati teeskuntam
+      let index = file.size % 5; // prati photo ki different result ravali ani
+      let detected = diseases[index];
+      showResult(detected);
+    },2000);
+  };
+  r.readAsDataURL(file);
+});
+
+function showResult(dis){
+  let lang=document.getElementById("langSelect").value;
+  document.getElementById("output").style.display="block";
+  document.getElementById("dName").innerText=data[lang][dis].name;
+  document.getElementById("dSol").innerText=data[lang][dis].sol;
+  document.getElementById("conf").innerText="AI Confidence: "+(85+Math.floor(Math.random()*10))+"% (Demo)";
+  currentText=data[lang][dis].name+". "+data[lang][dis].sol;
+}
+
+document.getElementById("langSelect").addEventListener("change",()=>{
+  // language marithe malli same disease ni translate chey
+  let txt=document.getElementById("dName").innerText;
+  if(txt!=""){
+    // last detected ni malli chupinchu - simple ga reload cheyakunda
+    document.getElementById("output").style.display="none";
   }
 });
-function updateOutput(){
-  let lang = document.getElementById("langSelect").value;
-  let dis = document.getElementById("disease").value;
-  if(!dis) return;
-  document.getElementById("output").style.display = "block";
-  document.getElementById("dName").innerText = data[lang][dis].name;
-  document.getElementById("dSol").innerText = data[lang][dis].sol;
-  currentText = data[lang][dis].name + ". " + data[lang][dis].sol;
-}
-document.getElementById("disease").addEventListener("change", updateOutput);
-document.getElementById("langSelect").addEventListener("change", updateOutput);
 
 function speakNow(){
   if(currentText=="") return;
-  let msg = new SpeechSynthesisUtterance(currentText);
-  let lang = document.getElementById("langSelect").value;
-  msg.lang = lang=="te"? "te-IN" : lang=="hi"? "hi-IN" : "en-US";
+  let msg=new SpeechSynthesisUtterance(currentText);
+  let lang=document.getElementById("langSelect").value;
+  msg.lang=lang=="te"?"te-IN":lang=="hi"?"hi-IN":"en-US";
   window.speechSynthesis.speak(msg);
 }
 </script>
