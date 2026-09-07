@@ -20,9 +20,9 @@ select,input{width:95%;padding:12px;margin-top:10px;border-radius:10px;border:1.
 <div class="card">
 <h2>🌱 Kisan Pathshala</h2>
 <select id="langSelect">
+<option value="te" selected>Telugu - తెలుగు</option>
 <option value="en">English</option>
-<option value="te">Telugu</option>
-<option value="hi">Hindi</option>
+<option value="hi">Hindi - हिंदी</option>
 </select>
 <br><br>
 <input type="file" id="photo" accept="image/*">
@@ -36,30 +36,41 @@ select,input{width:95%;padding:12px;margin-top:10px;border-radius:10px;border:1.
 </div>
 <script>
 let currentText="";
+let lastDetected=""; // Last disease gurthu pettukuntam
 const data={
+  te:{
+    leafspot:{name:"AI Gurtinchindi: Aaku Maccha Rogam",sol:"Parishkaram: Chedda akulu teesi veyandi, Neem nune 5ml/L spray kottandi."},
+    yellow:{name:"AI Gurtinchindi: Pasupu Aaku",sol:"Parishkaram: Poshak lopam, compost/vermi compost veyandi, neellu ekkuva vaddu."},
+    powdery:{name:"AI Gurtinchindi: Bhoodida Tegulu",sol:"Parishkaram: Akulapai tella pudi, baking soda 5g + neellu spray cheyandi."},
+    blight:{name:"AI Gurtinchindi: Endu Tegulu",sol:"Parishkaram: Chedda bhagalu kosi kalcheyandi, Copper mandu vadandi."},
+    wilt:{name:"AI Gurtinchindi: Vadalu Rogam",sol:"Parishkaram: Mokka vadipothondi, neeti drainage chudandi, Trichoderma vadandi."}
+  },
   en:{
-    leafspot:{name:"AI Detected: Leaf Spot",sol:"Solution: Remove affected leaves, use Neem oil spray."},
-    yellow:{name:"AI Detected: Yellow Leaf",sol:"Solution: Add compost, don't overwater."},
-    powdery:{name:"AI Detected: Powdery Mildew",sol:"Solution: Baking soda spray, improve air flow."},
-    blight:{name:"AI Detected: Blight",sol:"Solution: Cut infected parts."},
+    leafspot:{name:"AI Detected: Leaf Spot",sol:"Solution: Remove affected leaves, use Neem oil 5ml/L spray."},
+    yellow:{name:"AI Detected: Yellow Leaf",sol:"Solution: Nutrient deficiency, add compost, don't overwater."},
+    powdery:{name:"AI Detected: Powdery Mildew",sol:"Solution: White powder on leaves, spray baking soda 5g/L."},
+    blight:{name:"AI Detected: Blight",sol:"Solution: Cut infected parts, use copper spray."},
     wilt:{name:"AI Detected: Wilt",sol:"Solution: Check drainage, use Trichoderma."}
   },
-  te:{
-    leafspot:{name:"AI Gurtinchindi: Aaku Maccha Rogam",sol:"Parishkaram: Chedda akulu teesi Neem oil kottandi."},
-    yellow:{name:"AI Gurtinchindi: Pasupu Aaku",sol:"Parishkaram: Compost veyandi."},
-    powdery:{name:"AI Gurtinchindi: Bhoodida Tegulu",sol:"Parishkaram: Baking soda spray."},
-    blight:{name:"AI Gurtinchindi: Endu Tegulu",sol:"Parishkaram: Chedda bhagalu teeseyandi."},
-    wilt:{name:"AI Gurtinchindi: Vadalu",sol:"Parishkaram: Neeru tagginchandi."}
-  },
   hi:{
-    leafspot:{name:"AI Ne Pahchana: Leaf Spot",sol:"Samadhan: Neem tel spray kare."},
-    yellow:{name:"AI Ne Pahchana: Peela Patta",sol:"Samadhan: Khad dale."},
-    powdery:{name:"AI Ne Pahchana: Powdery Mildew",sol:"Samadhan: Baking soda spray kare."},
-    blight:{name:"AI Ne Pahchana: Blight",sol:"Samadhan: Kharab hissa kaat de."},
-    wilt:{name:"AI Ne Pahchana: Wilt",sol:"Samadhan: Paani kam de."}
+    leafspot:{name:"AI Ne Pahchana: Patton Par Dhabba",sol:"Samadhan: Kharab patte hataye, Neem tel 5ml/L spray kare."},
+    yellow:{name:"AI Ne Pahchana: Peela Patta",sol:"Samadhan: Poshak ki kami, compost dale, paani kam de."},
+    powdery:{name:"AI Ne Pahchana: Safed Powder Rog",sol:"Samadhan: Patton par safed powder, baking soda spray kare."},
+    blight:{name:"AI Ne Pahchana: Jhulas Rog",sol:"Samadhan: Sankramit hissa kaat de, copper dawai dale."},
+    wilt:{name:"AI Ne Pahchana: Murjhana Rog",sol:"Samadhan: Paani ka nikasi dekhe, Trichoderma dale."}
   }
 };
 const diseases=["leafspot","yellow","powdery","blight","wilt"];
+
+function showResult(dis){
+  lastDetected = dis;
+  let lang=document.getElementById("langSelect").value;
+  document.getElementById("output").style.display="block";
+  document.getElementById("dName").innerText=data[lang][dis].name;
+  document.getElementById("dSol").innerText=data[lang][dis].sol;
+  currentText=data[lang][dis].name+". "+data[lang][dis].sol;
+}
+
 document.getElementById("photo").addEventListener("change", e=>{
   let file=e.target.files[0];
   if(!file) return;
@@ -73,16 +84,22 @@ document.getElementById("photo").addEventListener("change", e=>{
     setTimeout(()=>{
       document.getElementById("loader").style.display="none";
       let detected=diseases[file.size%5];
-      let lang=document.getElementById("langSelect").value;
-      document.getElementById("output").style.display="block";
-      document.getElementById("dName").innerText=data[lang][detected].name;
-      document.getElementById("dSol").innerText=data[lang][detected].sol;
-      currentText=data[lang][detected].name+". "+data[lang][detected].sol;
+      showResult(detected);
     },2000);
   };
   r.readAsDataURL(file);
 });
+
+// Language marchina ventane Telugu lo ki maripovali
+document.getElementById("langSelect").addEventListener("change", ()=>{
+  if(lastDetected!=""){
+    showResult(lastDetected);
+  }
+});
+
 function speakNow(){
+  if(currentText=="") return;
+  window.speechSynthesis.cancel();
   let msg=new SpeechSynthesisUtterance(currentText);
   let lang=document.getElementById("langSelect").value;
   msg.lang=lang=="te"?"te-IN":lang=="hi"?"hi-IN":"en-US";
